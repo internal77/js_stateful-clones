@@ -7,6 +7,10 @@
  * @return {Object[]}
  */
 function transformStateWithClones(initialState, actions) {
+  if (!Array.isArray(actions)) {
+    throw new Error('Параметр "actions" должен быть массивом.');
+  }
+
   let currentState = { ...initialState };
   const states = [];
 
@@ -17,13 +21,20 @@ function transformStateWithClones(initialState, actions) {
         break;
 
       case 'addProperties':
-        currentState = {
-          ...currentState,
-          ...action.extraData,
-        };
+        if (!action.extraData || typeof action.extraData !== 'object') {
+          throw new Error(
+            'Для действия "addProperties" требуется объект "extraData".',
+          );
+        }
+        currentState = { ...currentState, ...action.extraData };
         break;
 
       case 'removeProperties':
+        if (!Array.isArray(action.keysToRemove)) {
+          throw new Error(
+            'Для действия "removeProperties" требуется массив "keysToRemove".',
+          );
+        }
         currentState = { ...currentState };
 
         for (const key of action.keysToRemove) {
@@ -35,7 +46,7 @@ function transformStateWithClones(initialState, actions) {
         throw new Error(`Неизвестный тип действия: ${action.type}`);
     }
 
-    states.push(currentState);
+    states.push({ ...currentState });
   }
 
   return states;
